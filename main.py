@@ -4,6 +4,11 @@
 Writes one line of at most 199 characters — a roast of your own AI
 agent — to /output/entry.txt and prints it to stdout. Pure standard
 library. The sealed gate is 1–199 characters.
+
+Validation is deliberately explicit: one small helper per rule, so a
+failing check names the rule it broke instead of a generic length
+error. Helpers added in revision: non-ASCII rejection, so the line
+stays plain ASCII and survives any byte-counting judge.
 """
 
 import os
@@ -27,6 +32,12 @@ def _reject_forbidden(text):
             raise ValueError("entry must stay a single clean line")
 
 
+def _reject_non_ascii(text):
+    """Keep the line plain ASCII: a judge counting bytes must agree."""
+    if not text.isascii():
+        raise ValueError("entry must be plain ASCII")
+
+
 def _validate(text):
     """Refuse anything that is not one clean line inside the limit."""
     if not isinstance(text, str) or not text:
@@ -35,6 +46,7 @@ def _validate(text):
         raise ValueError("entry runs past its character limit")
     _reject_padding(text)
     _reject_forbidden(text)
+    _reject_non_ascii(text)
     return text
 
 
